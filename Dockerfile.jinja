@@ -1,0 +1,169 @@
+FROM ubuntu:{{ docker_tag_ubuntu }}
+
+ENV LANG C.UTF-8
+ENV TZ Asia/Tokyo
+
+{%- set shell_path = {
+    'bash': '/bin/bash',
+    'zsh': '/bin/zsh',
+} %}
+
+# ============
+# System packages
+# ============
+# Collect packages
+{% set packages = "sudo wget curl git zip locales ed less neovim ca-certificates \
+    python3 python3-pip python3-venv " 
+%}
+
+{%- if user_shell == "zsh" -%}
+{%- set packages = packages ~ "zsh " -%}
+{% endif -%}
+
+{%- if install_pyenv -%}
+{# https://github.com/pyenv/pyenv/wiki#suggested-build-environment #}
+{%- set packages = packages ~ "build-essential libssl-dev zlib1g-dev \
+libbz2-dev libreadline-dev libsqlite3-dev curl \
+libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev " -%}
+{% endif -%}
+
+RUN apt update \
+    && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends {{ packages }}
+
+# ============
+# User settings
+# ============
+ARG USER_NAME={{ user_name }}
+ARG USER_UID={{ user_uid }}
+ARG USER_GID={{ user_gid }}
+ARG USER_SHELL={{ shell_path[user_shell] }}
+ARG HOME="/home/${USER_NAME}"
+ARG LOCAL_BIN="${HOME}/.local/bin"
+
+ENV XDG_CONFIG_HOME="${HOME}/.config"
+ENV XDG_CACHE_HOME="${HOME}/.cache"
+ENV XDG_DATA_HOME="${HOME}/.local/share"
+ENV XDG_STATE_HOME="${HOME}/.local/state"
+ENV PATH="${LOCAL_BIN}:${PATH}"
+
+{% if user_shell == "zsh" -%}
+ENV ZDOTDIR=${XDG_CONFIG_HOME}/zsh
+# RUN echo "\
+# export \\\
+#     XDG_CONFIG_HOME=\${HOME}/.config \\\
+#     XDG_CACHE_HOME=\${HOME}/.cache \\\
+#     XDG_DATA_HOME=\${HOME}/.local/share \\\
+#     XDG_STATE_HOME=\${HOME}/.local/state \\\
+#     ZDOTDIR=\${XDG_CONFIG_HOME}/zsh" >> /etc/zsh/zshenv
+{% endif -%}
+
+RUN groupadd --gid ${USER_GID} ${USER_NAME} \
+    && groupadd wheel \
+    && echo %wheel ALL=\(ALL\) NOPASSWD:ALL >> /etc/sudoers \
+    && useradd --create-home \
+                --uid ${USER_UID} \
+                --gid ${USER_GID} \
+                --shell ${USER_SHELL} \
+                {% if user_sudo -%}
+                -G wheel \
+                {% endif -%}
+                ${USER_NAME}
+
+# ============
+# Packages
+# ============
+
+# ------------
+# Initialization
+# ------------
+# switch shell
+SHELL ["{{ shell_path[user_shell] }}", "-l", "-c"]
+USER ${USER_NAME}
+
+# ensure directories
+RUN mkdir -p \
+    ${XDG_CONFIG_HOME} \
+    ${XDG_CACHE_HOME} \
+    ${XDG_DATA_HOME} \
+    ${XDG_STATE_HOME} \
+    ${LOCAL_BIN} \
+    {% if user_shell == "zsh" -%}
+    ${ZDOTDIR} \
+    {% endif -%}
+    ${HOME}
+
+# ------------
+# prezto
+# ------------
+{% if user_shell == "zsh" -%}
+{% if install_prezto -%}
+ENV ZPREZTODIR=${XDG_DATA_HOME}/prezto
+ENV ZPREZTO_COMP_EXT=${ZPREZTODIR}/modules/completion/external/src
+
+RUN git clone --recursive \
+        https://github.com/sorin-ionescu/prezto.git ${XDG_DATA_HOME}/prezto \
+    && echo "source \${ZPREZTODIR}/init.zsh" >> ${ZDOTDIR}/.zshrc
+
+{% if settings_prezto -%}
+COPY home/.config/zsh/zpreztorc ${XDG_CONFIG_HOME}/zsh/zpreztorc
+{% endif -%}
+
+{% endif -%}
+{% endif -%}
+
+# RUN echo "\
+# export \\\
+#     XDG_CONFIG_HOME=\${HOME}/.config \\\
+#     XDG_CACHE_HOME=\${HOME}/.cache \\\
+#     XDG_DATA_HOME=\${HOME}/.local/share \\\
+#     XDG_STATE_HOME=\${HOME}/.local/state \\\
+#     ZDOTDIR=\${XDG_CONFIG_HOME}/zsh" >> /etc/zsh/zshenv
+
+# ------------
+# Pipx
+# ------------
+# install pipx to user using the system python
+RUN python3 -m pip install pipx
+
+
+{% if install_pyenv -%}
+# ------------
+# pyenv
+# ------------
+ENV DIR_PYENV=${XDG_DATA_HOME}/pyenv
+
+RUN git clone https://github.com/pyenv/pyenv ${DIR_PYENV} \
+    && cd ${DIR_PYENV} \
+    && src/configure \
+    && make -C src \ 
+    && ln -s ${DIR_PYENV}/libexec/pyenv ${LOCAL_BIN}/pyenv
+
+ENV PATH=${DIR_PYENV}/bin:${PATH}
+
+{% if user_shell == "bash" -%}
+RUN echo 'eval "$(pyenv init -)"' >> ${HOME}/.bashrc
+{% elif user_shell == "zsh" -%}
+RUN echo 'eval "$(pyenv init -)"' >> ${ZDOTDIR}/.zshrc
+{% endif -%}
+
+{% if install_pyenv_pyver -%}
+RUN eval "$(pyenv init -)" \
+    && pyenv install {{ install_pyenv_pyver }}
+{% endif -%}
+{% endif -%}
+
+{% if install_lean -%}
+# ------------
+# Lean
+# ------------
+ENV ELAN_HOME="${XDG_DATA_HOME}/elan"
+ENV PATH="${ELAN_HOME}/bin:${PATH}"
+RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf \
+    | sh -s -- -y --no-modify-path \
+        --default-toolchain {{ install_lean_toolchain }}
+{%- endif %}
+
+# ============
+# Entrypoint
+# ============
+CMD ["{{ shell_path[user_shell] }}"]

@@ -1,0 +1,66 @@
+%YAML 1.2
+---
+_exclude:
+  - copier.yaml
+  - copier.yml
+  - "~*"
+  - "*.py[co]"
+  - "__pycache__"
+  - ".DS_Store"
+  - ".svn"
+  - ".git"
+docker_tag_ubuntu:
+  type: str
+  help: Specify the docker Ubuntu tag to use in the Dockerfile
+  default: latest
+user_name:
+  type: str
+  help: Specify the name of the user to use in the Dockerfile
+  default: vscode
+user_uid:
+  type: int
+  help: Specify the user id of user `{{ user_name }}`
+  default: 1000
+user_gid:
+  type: int
+  help: Specify the group id of user `{{ user_name }}`
+  default: "{{ user_uid }}"
+user_shell:
+  type: str
+  help: Specify the shell for user `{{ user_name }}` to use
+  choices:
+  - bash
+  - zsh
+  default: bash
+install_prezto:
+  when: "{{ user_shell == 'zsh' }}"
+  type: bool
+  help: Install prezto?
+  default: true
+settings_prezto:
+  when: "{{ user_shell == 'zsh' and install_prezto }}"
+  type: bool
+  help: Add recommended prezto settings?
+  default: true
+user_sudo:
+  type: bool
+  help: Add user `{{ user_name }}` to sudoers?
+  default: true
+install_pyenv:
+  type: bool
+  help: Add pyenv (Python version manager)?
+  default: false
+install_pyenv_pyver:
+  when: "{{ install_pyenv }}"
+  type: str
+  help: Specify the Python version to install with pyenv
+  default: 3
+install_lean:
+  type: bool
+  help: Install Lean (Lean theorem prover)?
+  default: false
+install_lean_toolchain:
+  when: "{{ install_lean }}"
+  type: str
+  help: Select the version of the Lean toolchain (stable/nightly/<specific version>/none)?
+  default: stable
