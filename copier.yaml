@@ -31,6 +31,7 @@ user_shell:
   choices:
   - bash
   - zsh
+  - nu
   default: bash
 install_prezto:
   when: "{{ user_shell == 'zsh' }}"
@@ -55,6 +56,10 @@ install_pyenv_pyver:
   type: str
   help: Specify the Python version to install with pyenv
   default: 3
+install_poetry:
+  type: bool
+  help: Install poetry (Python package manager)?
+  default: false
 install_lean:
   type: bool
   help: Install Lean (Lean theorem prover)?

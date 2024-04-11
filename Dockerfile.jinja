@@ -152,6 +152,13 @@ RUN eval "$(pyenv init -)" \
 {% endif -%}
 {% endif -%}
 
+{% if install_poetry -%}
+# ------------
+# Poetry
+# ------------
+RUN pipx install poetry
+{% endif %}
+
 {% if install_lean -%}
 # ------------
 # Lean
