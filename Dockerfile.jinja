@@ -76,8 +76,8 @@ RUN groupadd --gid ${USER_GID} ${USER_NAME} \
 # ------------
 # Initialization
 # ------------
-# switch shell
-SHELL ["{{ shell_path[user_shell] }}", "-l", "-c"]
+# do not switch shell; keep using bash
+# switch user
 USER ${USER_NAME}
 
 # ensure directories
