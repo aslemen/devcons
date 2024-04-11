@@ -93,10 +93,16 @@ RUN mkdir -p \
     ${HOME}
 
 # ------------
-# prezto
+# Shell settings
 # ------------
 {% if user_shell == "zsh" -%}
+# ------------
+# * zsh
+# ------------
 {% if install_prezto -%}
+# ------------
+# ** prezto
+# ------------
 ENV ZPREZTODIR=${XDG_DATA_HOME}/prezto
 ENV ZPREZTO_COMP_EXT=${ZPREZTODIR}/modules/completion/external/src
 
@@ -107,7 +113,6 @@ RUN git clone --recursive \
 {% if settings_prezto -%}
 COPY home/.config/zsh/zpreztorc ${XDG_CONFIG_HOME}/zsh/zpreztorc
 {% endif -%}
-
 {% endif -%}
 {% endif -%}
 
