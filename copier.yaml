@@ -9,10 +9,12 @@ _exclude:
   - ".DS_Store"
   - ".svn"
   - ".git"
-docker_tag_ubuntu:
+docker_tag:
   type: str
-  help: Specify the docker Ubuntu tag to use in the Dockerfile
-  default: latest
+  help: |
+    Specify the docker image to use.
+    Hint: Use `nvidia/cuda` here for GPU support.
+  default: ubuntu:latest
 
 # ============
 # System settings
