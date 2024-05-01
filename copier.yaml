@@ -64,6 +64,10 @@ install_poetry:
   type: bool
   help: Install poetry (Python package manager)?
   default: false
+install_pipx:
+  type: bool
+  help: Install pipx (Python app manager)?
+  default: false
 install_lean:
   type: bool
   help: Install Lean (Lean theorem prover)?
