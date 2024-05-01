@@ -24,6 +24,9 @@ ENV TZ Asia/Tokyo
 {%- set packages = packages ~ "pkg-config libssl-dev " -%}
 {% endif -%}
 
+{%- if install_poetry -%}
+{% set packages = packages ~ "python3-poetry " -%}
+{% endif -%}
 {%- if install_pyenv -%}
 {# https://github.com/pyenv/pyenv/wiki#suggested-build-environment #}
 {%- set packages = packages ~ "build-essential libssl-dev zlib1g-dev \
@@ -219,13 +222,6 @@ RUN eval "$(pyenv init -)" \
     && pyenv install {{ install_pyenv_pyver }}
 {% endif -%}
 {% endif -%}
-
-{% if install_poetry -%}
-# ------------
-# Poetry
-# ------------
-RUN pipx install poetry
-{% endif %}
 
 {% if install_lean -%}
 # ------------
