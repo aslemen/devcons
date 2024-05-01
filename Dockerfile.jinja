@@ -68,8 +68,9 @@ RUN NU_INFO=$(curl https://api.github.com/repos/nushell/nushell/releases/latest 
 # User settings
 # ============
 ARG USER_NAME={{ user_name }}
-ARG USER_UID={{ user_uid }}
-ARG USER_GID={{ user_gid }}
+ARG UID={{ uid }}
+ARG GROUP_NAME={{ group_name }}
+ARG GID={{ gid }}
 ARG USER_SHELL={{ shell_path[user_shell] }}
 ARG HOME="/home/${USER_NAME}"
 ARG LOCAL_BIN="${HOME}/.local/bin"
@@ -91,17 +92,41 @@ ENV ZDOTDIR=${XDG_CONFIG_HOME}/zsh
 #     ZDOTDIR=\${XDG_CONFIG_HOME}/zsh" >> /etc/zsh/zshenv
 {% endif -%}
 
-RUN groupadd --gid ${USER_GID} ${USER_NAME} \
+RUN : \
+    {% if user_sudo -%}
     && groupadd wheel \
     && echo %wheel ALL=\(ALL\) NOPASSWD:ALL >> /etc/sudoers \
-    && useradd --create-home \
-                --uid ${USER_UID} \
-                --gid ${USER_GID} \
+    {% endif -%}
+    && if getent group ${GID} >/dev/null 2>&1; then \
+        groupmod -n ${GROUP_NAME} $(getent group ${GID} | cut -d: -f1) \
+        ; \
+    else \
+        groupadd --gid ${GID} ${GROUP_NAME} \
+        ; \
+    fi \
+    && if id -u ${UID} >/dev/null 2>&1; then \
+        usermod \
+            -l ${USER_NAME} \
+            -d ${HOME} \
+            -g ${GROUP_NAME} \
+            {% if user_sudo -%}
+            -aG wheel \
+            {%- endif %}
+            $(id -nu ${UID}) \
+        && chsh -s ${USER_SHELL} ${USER_NAME} \
+        && mkdir ${HOME} \
+        && chown -R ${USER_NAME}:${GROUP_NAME} ${HOME} \
+        ; \
+    else \
+        useradd --create-home \
+                --uid ${UID} \
                 --shell ${USER_SHELL} \
                 {% if user_sudo -%}
                 -G wheel \
                 {% endif -%}
-                ${USER_NAME}
+                ${USER_NAME}\
+        ; \
+    fi
 
 # ============
 # Packages
