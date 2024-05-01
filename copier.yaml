@@ -13,6 +13,14 @@ docker_tag_ubuntu:
   type: str
   help: Specify the docker Ubuntu tag to use in the Dockerfile
   default: latest
+
+# ============
+# System settings
+# ============
+
+# ============
+# User settings
+# ============
 user_name:
   type: str
   help: Specify the name of the user to use in the Dockerfile
@@ -29,6 +37,14 @@ gid:
   type: int
   help: Specify the group id of group `{{ group_name }}`
   default: "{{ uid }}"
+user_sudo:
+  type: bool
+  help: Add user `{{ user_name }}` to sudoers?
+  default: true
+
+# ============
+# Shell settings
+# ============
 user_shell:
   type: str
   help: Specify the shell for user `{{ user_name }}` to use
@@ -47,10 +63,14 @@ settings_prezto:
   type: bool
   help: Add recommended prezto settings?
   default: true
-user_sudo:
-  type: bool
-  help: Add user `{{ user_name }}` to sudoers?
-  default: true
+
+# ============
+# Package settings
+# ============
+
+# ------------
+# Python
+# ------------
 install_pyenv:
   type: bool
   help: Add pyenv (Python version manager)?
@@ -68,6 +88,10 @@ install_pipx:
   type: bool
   help: Install pipx (Python app manager)?
   default: false
+
+# ------------
+# Lean
+# ------------
 install_lean:
   type: bool
   help: Install Lean (Lean theorem prover)?
