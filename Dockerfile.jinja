@@ -229,6 +229,20 @@ RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -
         --default-toolchain {{ install_lean_toolchain }}
 {%- endif %}
 
+{% if install_rust -%}
+# ------------
+# Rust
+# ------------
+ENV RUSTUP_HOME=${XDG_DATA_HOME}/rustup
+ENV CARGO_HOME=${XDG_DATA_HOME}/cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+{% if user_shell == "bash" -%}
+RUN echo 'source ${HOME}/.local/share/cargo/env' >> ${HOME}/.bashrc
+{% elif user_shell == "zsh" -%}
+RUN echo 'source ${HOME}/.local/share/cargo/env' >> ${ZDOTDIR}/.zshrc
+{%- endif %}
+{%- endif %}
+
 # ============
 # Entrypoint
 # ============

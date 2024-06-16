@@ -103,3 +103,11 @@ install_lean_toolchain:
   type: str
   help: Select the version of the Lean toolchain (stable/nightly/<specific version>/none)?
   default: stable
+
+# ------------
+# Rust
+# ------------
+install_rust:
+  type: bool
+  help: Install Rust?
+  default: false
