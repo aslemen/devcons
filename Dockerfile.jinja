@@ -39,14 +39,6 @@ libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-d
 RUN apt update \
     && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends {{ packages }}
 
-# ------------
-# eza
-# ------------
-RUN wget -c https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz -O - | tar xz \
-    && sudo chmod +x eza \
-    && chown root:root eza \
-    && mv eza /usr/local/bin/eza
-
 {% if user_shell == "nu" -%}
 # ------------
 # Nushell
@@ -67,6 +59,16 @@ RUN NU_INFO=$(curl https://api.github.com/repos/nushell/nushell/releases/latest 
     && sudo chmod +x nu \
     && chown root:root nu \
     && mv nu /usr/local/bin/nu
+{% endif -%}
+
+{% if install_eza -%}
+# ------------
+# eza
+# ------------
+RUN wget -c https://github.com/eza-community/eza/releases/download/{{ install_eza_version }}/eza_x86_64-unknown-linux-gnu.tar.gz -O - | tar xz \
+    && sudo chmod +x eza \
+    && chown root:root eza \
+    && mv eza /usr/local/bin/eza
 {% endif -%}
 
 # ============

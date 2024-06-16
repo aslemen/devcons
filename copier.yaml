@@ -69,6 +69,20 @@ settings_prezto:
 # ============
 # Package settings
 # ============
+# ------------
+# eza
+# ------------
+install_eza:
+  type: bool
+  help: Install eza (file-listing program)?
+  default: false
+install_eza_version:
+  when: "{{ install_eza }}"
+  type: str
+  help: |
+    Specify the version (git tag) of eza to install.
+    Hint: format: v0.18.17
+  default: latest
 
 # ------------
 # Python
