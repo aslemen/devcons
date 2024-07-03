@@ -133,3 +133,23 @@ install_rust:
   type: bool
   help: Install Rust?
   default: false
+
+# ------------
+# Node.js
+# ------------
+install_nvm:
+  type: bool
+  help: Install NVM (Node Version Manager)?
+  default: false
+install_nvm_version:
+  when: "{{ install_nvm }}"
+  type: str
+  help: |
+    Specify the NVM version to install
+    Hint: format: v0.11.22
+  default: v0.39.7
+install_node_version:
+  when: "{{ install_nvm }}"
+  type: str
+  help: Specify the Node.js version to install with NVM
+  default: 22
