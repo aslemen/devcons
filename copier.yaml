@@ -37,12 +37,20 @@ group_name:
   default: "{{ user_name }}"
 gid:
   type: int
-  help: Specify the group id of group `{{ group_name }}`
+  help: |
+    Specify the group id of group `{{ group_name }}`
+    CAUTION: The ID should be the same as or larger than 1000
   default: "{{ uid }}"
 user_sudo:
   type: bool
   help: Add user `{{ user_name }}` to sudoers?
   default: true
+wheel_gid:
+  type: int
+  help: |
+    Specify the group id of the wheel group.
+    NOTE: The ID must be different from the ID `{{ gid }}` of the group `{{ group_name }}`
+  default: 999
 
 # ============
 # Shell settings

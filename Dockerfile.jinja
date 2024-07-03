@@ -78,6 +78,7 @@ ARG USER_NAME={{ user_name }}
 ARG UID={{ uid }}
 ARG GROUP_NAME={{ group_name }}
 ARG GID={{ gid }}
+ARG GID_WHEEL={{ wheel_gid }}
 ARG USER_SHELL={{ shell_path[user_shell] }}
 ARG HOME="/home/${USER_NAME}"
 ARG LOCAL_BIN="${HOME}/.local/bin"
@@ -101,7 +102,7 @@ ENV ZDOTDIR=${XDG_CONFIG_HOME}/zsh
 
 RUN : \
     {% if user_sudo -%}
-    && groupadd wheel \
+    && groupadd --gid ${GID_WHEEL} wheel \
     && echo %wheel ALL=\(ALL\) NOPASSWD:ALL >> /etc/sudoers \
     {% endif -%}
     && if getent group ${GID} >/dev/null 2>&1; then \
@@ -128,6 +129,7 @@ RUN : \
         useradd --create-home \
                 --uid ${UID} \
                 --shell ${USER_SHELL} \
+                -g ${GROUP_NAME} \
                 {% if user_sudo -%}
                 -G wheel \
                 {% endif -%}
