@@ -252,11 +252,13 @@ RUN echo 'source ${HOME}/.local/share/cargo/env' >> ${ZDOTDIR}/.zshrc
 # Node.js
 # ------------
 ENV NVM_DIR=${XDG_DATA_HOME}/nvm
+ENV NPM_CONFIG_USERCONFIG=${XDG_CONFIG_HOME}/npm/npmrc
 RUN : \
     && mkdir -p ${NVM_DIR} \
     && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ install_nvm_version }}/install.sh | bash \
     && . ${NVM_DIR}/nvm.sh \
-    && nvm install {{ install_node_version }}
+    && nvm install {{ install_node_version }} \
+    && :
 {%- endif %}
 
 # ============
