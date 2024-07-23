@@ -13,7 +13,7 @@ ENV TZ Asia/Tokyo
 # System packages
 # ============
 # Collect packages
-{% set packages = "sudo wget curl git zip locales ed less neovim ca-certificates jq python3 python3-pip python3-venv "
+{% set packages = "sudo wget curl ssh git zip locales ed less neovim ca-certificates jq python3 python3-pip python3-venv build-essential "
 %}
 
 {%- if user_shell == "zsh" -%}
@@ -31,7 +31,7 @@ ENV TZ Asia/Tokyo
 {% endif -%}
 {%- if install_pyenv -%}
 {# https://github.com/pyenv/pyenv/wiki#suggested-build-environment #}
-{%- set packages = packages ~ "build-essential libssl-dev zlib1g-dev \
+{%- set packages = packages ~ "libssl-dev zlib1g-dev \
 libbz2-dev libreadline-dev libsqlite3-dev curl \
 libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev " -%}
 {% endif -%}
