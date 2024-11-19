@@ -1,7 +1,7 @@
 FROM {{ docker_tag }}
 
-ENV LANG C.UTF-8
-ENV TZ Asia/Tokyo
+ENV LANG=C.UTF-8
+ENV TZ=Asia/Tokyo
 
 {%- set shell_path = {
 'bash': '/bin/bash',
