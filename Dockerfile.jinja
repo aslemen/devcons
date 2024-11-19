@@ -4,9 +4,9 @@ ENV LANG C.UTF-8
 ENV TZ Asia/Tokyo
 
 {%- set shell_path = {
-    'bash': '/bin/bash',
-    'zsh': '/bin/zsh',
-    'nu': '/usr/local/bin/nu',
+'bash': '/bin/bash',
+'zsh': '/bin/zsh',
+'nu': '/usr/local/bin/nu',
 } %}
 
 # ============
@@ -23,17 +23,11 @@ ENV TZ Asia/Tokyo
 {%- set packages = packages ~ "pkg-config libssl-dev " -%}
 {% endif -%}
 
-{%- if install_poetry -%}
-{% set packages = packages ~ "python3-poetry " -%}
-{% endif -%}
-{%- if install_pipx -%}
-{% set packages = packages ~ "pipx " -%}
-{% endif -%}
 {%- if install_pyenv -%}
 {# https://github.com/pyenv/pyenv/wiki#suggested-build-environment #}
 {%- set packages = packages ~ "libssl-dev zlib1g-dev \
-libbz2-dev libreadline-dev libsqlite3-dev curl \
-libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev " -%}
+    libbz2-dev libreadline-dev libsqlite3-dev curl \
+    libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev " -%}
 {% endif -%}
 
 RUN apt update \
@@ -45,15 +39,15 @@ RUN apt update \
 # ------------
 WORKDIR /tmp
 RUN NU_INFO=$(curl https://api.github.com/repos/nushell/nushell/releases/latest | jq '\
-.assets | map(select(.name | test("x86_64-unknown-linux-gnu"))) \
-| map( \
+    .assets | map(select(.name | test("x86_64-unknown-linux-gnu"))) \
+    | map( \
     { \
-        "filename": .name, \
-        "basename": (.name | match("(.*).tar.gz") | .captures[0].string ), \
-        "url": .browser_download_url, \
+    "filename": .name, \
+    "basename": (.name | match("(.*).tar.gz") | .captures[0].string ), \
+    "url": .browser_download_url, \
     } \
-) | .[0]' \
-) \
+    ) | .[0]' \
+    ) \
     && curl --output - -L $(echo $NU_INFO | jq -r '.url') | tar xz \
     && cd $(echo $NU_INFO | jq -r '.basename') \
     && sudo chmod +x nu \
@@ -102,39 +96,39 @@ ENV ZDOTDIR=${XDG_CONFIG_HOME}/zsh
 
 RUN : \
     {% if user_sudo -%}
-    && groupadd --gid ${GID_WHEEL} wheel \
+&& groupadd --gid ${GID_WHEEL} wheel \
     && echo %wheel ALL=\(ALL\) NOPASSWD:ALL >> /etc/sudoers \
     {% endif -%}
-    && if getent group ${GID} >/dev/null 2>&1; then \
-        groupmod -n ${GROUP_NAME} $(getent group ${GID} | cut -d: -f1) \
-        ; \
+&& if getent group ${GID} >/dev/null 2>&1; then \
+    groupmod -n ${GROUP_NAME} $(getent group ${GID} | cut -d: -f1) \
+    ; \
     else \
-        groupadd --gid ${GID} ${GROUP_NAME} \
-        ; \
+    groupadd --gid ${GID} ${GROUP_NAME} \
+    ; \
     fi \
     && if id -u ${UID} >/dev/null 2>&1; then \
-        usermod \
-            -l ${USER_NAME} \
-            -d ${HOME} \
-            -g ${GROUP_NAME} \
-            {% if user_sudo -%}
-            -aG wheel \
-            {%- endif %}
-            $(id -nu ${UID}) \
-        && chsh -s ${USER_SHELL} ${USER_NAME} \
-        && mkdir ${HOME} \
-        && chown -R ${USER_NAME}:${GROUP_NAME} ${HOME} \
-        ; \
+    usermod \
+    -l ${USER_NAME} \
+    -d ${HOME} \
+    -g ${GROUP_NAME} \
+    {% if user_sudo -%}
+-aG wheel \
+    {%- endif %}
+$(id -nu ${UID}) \
+    && chsh -s ${USER_SHELL} ${USER_NAME} \
+    && mkdir ${HOME} \
+    && chown -R ${USER_NAME}:${GROUP_NAME} ${HOME} \
+    ; \
     else \
-        useradd --create-home \
-                --uid ${UID} \
-                --shell ${USER_SHELL} \
-                -g ${GROUP_NAME} \
-                {% if user_sudo -%}
-                -G wheel \
-                {% endif -%}
-                ${USER_NAME}\
-        ; \
+    useradd --create-home \
+    --uid ${UID} \
+    --shell ${USER_SHELL} \
+    -g ${GROUP_NAME} \
+    {% if user_sudo -%}
+-G wheel \
+    {% endif -%}
+${USER_NAME}\
+    ; \
     fi
 
 # ============
@@ -156,9 +150,9 @@ RUN mkdir -p \
     ${XDG_STATE_HOME} \
     ${LOCAL_BIN} \
     {% if user_shell == "zsh" -%}
-    ${ZDOTDIR} \
+${ZDOTDIR} \
     {% endif -%}
-    ${HOME}
+${HOME}
 
 # ------------
 # Shell settings
@@ -175,7 +169,7 @@ ENV ZPREZTODIR=${XDG_DATA_HOME}/prezto
 ENV ZPREZTO_COMP_EXT=${ZPREZTODIR}/modules/completion/external/src
 
 RUN git clone --recursive \
-        https://github.com/sorin-ionescu/prezto.git ${XDG_DATA_HOME}/prezto \
+    https://github.com/sorin-ionescu/prezto.git ${XDG_DATA_HOME}/prezto \
     && echo "source \${ZPREZTODIR}/init.zsh" >> ${ZDOTDIR}/.zshrc
 
 {% if settings_prezto -%}
@@ -222,6 +216,32 @@ RUN eval "$(pyenv init -)" \
 {% endif -%}
 {% endif -%}
 
+# ------------
+# Pip package installation
+# ------------
+{%- set pip_packages = "" -%}
+{%- if install_poetry -%}
+# ------------
+# * poetry
+# ------------
+{% set pip_packages = pip_packages ~ "poetry " -%}
+{% endif -%}
+
+{%- if install_pipx -%}
+# ------------
+# * pipx
+# ------------
+{% set pip_packages = pip_packages ~ "pipx " -%}
+{% endif -%}
+
+# ------------
+# * do
+# ------------
+{% set pip_packages = pip_packages.strip() -%}
+{% if pip_packages != "" -%}
+RUN python3 -m pip install {{ pip_packages }}
+{% endif -%}
+
 {% if install_lean -%}
 # ------------
 # Lean
@@ -230,7 +250,7 @@ ENV ELAN_HOME="${XDG_DATA_HOME}/elan"
 ENV PATH="${ELAN_HOME}/bin:${PATH}"
 RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf \
     | sh -s -- -y --no-modify-path \
-        --default-toolchain {{ install_lean_toolchain }}
+    --default-toolchain {{ install_lean_toolchain }}
 {%- endif %}
 
 {% if install_rust -%}
