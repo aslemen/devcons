@@ -239,7 +239,7 @@ RUN eval "$(pyenv init -)" \
 # ------------
 {% set pip_packages = pip_packages.strip() -%}
 {% if pip_packages != "" -%}
-RUN python3 -m pip install {{ pip_packages }}
+RUN python3 -m pip install --break-system-packages {{ pip_packages }}
 {% endif -%}
 
 {% if install_lean -%}
